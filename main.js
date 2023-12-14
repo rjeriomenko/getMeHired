@@ -1,10 +1,14 @@
 const { app, BrowserWindow } = require('electron');
-const puppeteer = require('puppeteer');
+const playwright = require('playwright');
 
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1000,
     height: 750,
+    webPreferences: {
+      webgl: false,
+      hardwareAcceleration: false,
+    },
   });
 
  return win;
@@ -19,15 +23,20 @@ app.on('window-all-closed', () => {
 app.whenReady().then(async () => {
   const mainWindow = createWindow();
 
-  const browser = await puppeteer.launch({ headless:false });
+  const browser = await playwright.chromium.launch();
   const page = await browser.newPage();
 
   // Visit page 
-  await page.goto('https://jerio.me');
+  await page.goto('https://google.com/');
+  await page.getByTitle('Search').fill('test'); // doesn't work
+
   const html = await page.content();
-  console.log(html)
+
+  await browser.close();
 
   mainWindow.loadURL(`data:text/html,${encodeURIComponent(html)}`);
+
+  mainWindow.webContents.openDevTools();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
