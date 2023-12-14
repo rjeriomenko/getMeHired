@@ -19,7 +19,7 @@ app.on('window-all-closed', () => {
 app.whenReady().then(async () => {
   const mainWindow = createWindow();
 
-  const browser = await puppeteer.launch({ headless:false });
+  const browser = await puppeteer.launch({ headless:true });
   const page = await browser.newPage();
 
   // Visit page 
