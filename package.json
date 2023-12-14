@@ -1,0 +1,23 @@
+{
+  "name": "getmehired",
+  "version": "1.0.0",
+  "description": "automate sending job applications",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjeriomenko/getMeHired.git"
+  },
+  "author": "Rokas Jeriomenko",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/rjeriomenko/getMeHired/issues"
+  },
+  "homepage": "https://github.com/rjeriomenko/getMeHired#readme",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}
