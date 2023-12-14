@@ -29,6 +29,7 @@ app.whenReady().then(async () => {
 
   mainWindow.loadURL(`data:text/html,${encodeURIComponent(html)}`);
 
+  // Create a window on mac if the app is running with no windows
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   })
