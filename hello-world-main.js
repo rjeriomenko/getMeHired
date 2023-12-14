@@ -1,13 +1,16 @@
 const { app, BrowserWindow } = require('electron');
-const puppeteer = require('puppeteer');
+const path = require('node:path');
 
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1000,
     height: 750,
+    webPreferences: {
+      preload: path.join(__dirname, 'hello-world-preload.js')
+    }
   });
 
- return win;
+  win.loadFile('hello-world.html');
 }
 
 // Close the app when all windows are closed on Windows and Linux
@@ -16,18 +19,8 @@ app.on('window-all-closed', () => {
 })
 
 // Start the app and create a window
-app.whenReady().then(async () => {
-  const mainWindow = createWindow();
-
-  const browser = await puppeteer.launch({ headless:false });
-  const page = await browser.newPage();
-
-  // Visit page 
-  await page.goto('https://jerio.me');
-  const html = await page.content();
-  console.log(html)
-
-  mainWindow.loadURL(`data:text/html,${encodeURIComponent(html)}`);
+app.whenReady().then(() => {
+  createWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

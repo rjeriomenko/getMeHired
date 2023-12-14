@@ -19,5 +19,8 @@
   "homepage": "https://github.com/rjeriomenko/getMeHired#readme",
   "devDependencies": {
     "electron": "^28.0.0"
+  },
+  "dependencies": {
+    "puppeteer": "^21.6.1"
   }
 }
