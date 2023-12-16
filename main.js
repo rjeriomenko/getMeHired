@@ -19,13 +19,12 @@ app.on('window-all-closed', () => {
 app.whenReady().then(async () => {
   const mainWindow = createWindow();
 
-  const browser = await puppeteer.launch({ headless:false });
+  const browser = await puppeteer.launch({ headless:true });
   const page = await browser.newPage();
 
   // Visit page 
-  await page.goto('https://jerio.me');
+  await page.goto('https://rokasjeriomenko.com');
   const html = await page.content();
-  console.log(html)
 
   mainWindow.loadURL(`data:text/html,${encodeURIComponent(html)}`);
 
