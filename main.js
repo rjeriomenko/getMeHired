@@ -5,6 +5,9 @@ const createWindow = () => {
   const win = new BrowserWindow({
     width: 1000,
     height: 750,
+    webPreferences: {
+      devTools: true,
+    },
   });
 
  return win;
@@ -23,10 +26,13 @@ app.whenReady().then(async () => {
   const page = await browser.newPage();
 
   // Visit page 
-  await page.goto('https://rokasjeriomenko.com');
+  await page.goto('https://www.amazon.jobs/en/search?offset=0&result_limit=10&sort=relevant&business_category[]=amazon-web-services');
+  await new Promise(r => setTimeout(r, 5000));
   const html = await page.content();
 
   mainWindow.loadURL(`data:text/html,${encodeURIComponent(html)}`);
+  
+  mainWindow.webContents.openDevTools();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
