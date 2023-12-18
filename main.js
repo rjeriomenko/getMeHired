@@ -2,7 +2,7 @@ const { app, BrowserWindow } = require('electron');
 const puppeteer = require('puppeteer');
 const PAGELOADDELAY = 1000;
 const AMAZONJOBS = 'https://www.amazon.jobs/en/search?offset=0&result_limit=10&sort=relevant&business_category[]=amazon-web-services';
-const HUNTR = 'https://huntr.co/track/goals/current';
+const HUNTRURL = 'https://huntr.co/track/goals/current';
 const HUNTREMAIL = 'rokas@jerio.me';
 const HUNTRPASSWORD = 'KKZ5UCjRU8Dtuh';
 
@@ -37,17 +37,24 @@ const pageHtml = async (url, page, preReturnFunction = null) => {
   return html;
 }
 
-const clickAndWaitForRedirect = async (selector, page) => {
+// Click on the selector element and wait to be redirected. Allows multiple redirects.
+const clickAndWaitForRedirect = async (selector, page, repeatRedirectTimes = 0) => {
   await Promise.all([
     page.waitForNavigation(),
     page.waitForSelector(selector, { visible: true }),
     page.click(selector, page),
   ]);
   await pageLoadDelay();
+
+  while (repeatRedirectTimes > 0) {
+    await page.waitForNavigation();
+    await pageLoadDelay();
+    repeatRedirectTimes -= 1;
+  }
 }
 
-// Login to Huntr
-const loginHuntr = (email, password) => {
+// Login to Huntr, assuming the page is already at 'https://huntr.co/login'
+const fillAndSubmitLoginHuntr = (email, password) => {
   return async (page) => {
     await page.locator('input[type="email"]')
       .setEnsureElementIsInTheViewport(false)
@@ -57,21 +64,15 @@ const loginHuntr = (email, password) => {
       .setEnsureElementIsInTheViewport(false)
       .fill(password);
 
-    
-    console.log(await page.content())
-    
-    // await clickAndWaitForRedirect('a[href="/signup"]', page); // THIS 100% WORKS
-
-    await clickAndWaitForRedirect('button[color="#6A4FEB"]', page); // Why not work? - not submit?
-
-    console.log("what is going on")
-    console.log(await page.content())
-
-
-    // await clickAndWaitForRedirect('input[type="submit"]', page); // Why not work? - submit? somehow less likely to work?
-
+    await clickAndWaitForRedirect('button[color="#6A4FEB"]', page, 1);
     return page;
   }
+}
+
+// Testing - Allows me to see the html immediately after logging in
+const returnHuntrLoginHtml = async (page) => {
+  const huntrLoginHtml = await pageHtml(HUNTRURL, page, fillAndSubmitLoginHuntr(HUNTREMAIL, HUNTRPASSWORD));
+  return huntrLoginHtml;
 }
 
 // Close the app when all windows are closed on Windows and Linux
@@ -82,14 +83,14 @@ app.on('window-all-closed', () => {
 // Start the app and create a window
 app.whenReady().then(async () => {
   const mainWindow = createWindow();
-
   const browser = await puppeteer.launch({ headless:true });
   const page = await browser.newPage();
-  const huntrLoginHtml = await pageHtml(HUNTR, page, loginHuntr(HUNTREMAIL, HUNTRPASSWORD));
 
-  mainWindow.loadURL(`data:text/html,${encodeURIComponent(huntrLoginHtml)}`);
+  const testHuntrFlowHtml = await returnHuntrLoginHtml(page) // good for testing, will ultimately just be a headless series of functions called on page
+
+  mainWindow.loadURL(`data:text/html,${encodeURIComponent(testHuntrFlowHtml)}`);
   
-  mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools(); // good for testing, will ultimately be removed
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
