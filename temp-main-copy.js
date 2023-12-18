@@ -26,46 +26,36 @@ const loginHuntr = async (page) => {
 const findAndClickJobBlock = async (jobBlockTitle, page) => {
   const parentDivHandle = await page.waitForSelector(`.list-container.transparent-scrollbar.small:has(input[value="${jobBlockTitle}"])`);
   const addJobBlockDivHandle = await parentDivHandle.$('.add-job-block');
-  await addJobBlockDivHandle.click();
-  await parentDivHandle.dispose();
+  logElementHandle(addJobBlockDivHandle, page)
+  // await addJobBlockDivHandle.click();
+  await Promise.all([
+    page.waitForNavigation(),
+    addJobBlockDivHandle.click(),
+  ]);
   await addJobBlockDivHandle.dispose();
   await pageLoadDelay();
 }
 
 const fillAndSubmitNewJobForm = async (page) => {
-  // const companyInputHandle = await page.waitForSelector('input[aria-label="Company"]')
-  // await companyInputHandle.type('test-title-3', {delay: 100});
-
   await page.locator('input[aria-label="Company"]')
     .setEnsureElementIsInTheViewport(false)
-    .fill('test-company-3')
-
+    .fill('test-company-3');
   await page.locator('input[aria-label="Job Title"]')
     .setEnsureElementIsInTheViewport(false)
     .fill('test-title-3');
 
   const parentMainModalHandle = await page.waitForSelector(`main.transparent-scrollbar.medium`);
   const saveJobHandle = await parentMainModalHandle.$('button[color="#6A4FEB"]');
-
-  const companyInputHandle2 = await page.waitForSelector('input[aria-label="Company"]')
-
-  console.log('before click')
-  logElementHandle(companyInputHandle2, page)
-  logElementHandle(parentMainModalHandle, page)
   // await Promise.all([
   //   page.waitForNavigation(),
-  //   parentMainModalHandle.waitForSelector('button[color="#6A4FEB"]'),
   //   saveJobHandle.click(),
   // ]);
-  console.log('after click')
-  await saveJobHandle.dispose();
-  // await saveJobHandle.click();
   await pageLoadDelay();
 }
 
 const createHuntrJobPosting = async(page) => {
-  await findAndClickJobBlock("Coding Challenge ", page);
-  await fillAndSubmitNewJobForm(page);
+  findAndClickJobBlock("Coding Challenge ", page);
+  fillAndSubmitNewJobForm(page);
 }
 
 // Testing - Allows me to see the raw html during the Huntr workflow
