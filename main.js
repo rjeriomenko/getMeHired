@@ -3,15 +3,15 @@ const {
   createWindow,
   clickAndWaitForRedirect,
   pageLoadDelay,
-  logElementHandle,
 } = require("./utils");
 const config = require("./config");
 const credentials = require("./credentials");
+const jobs = require("./jobs");
 const { app } = require('electron');
 const puppeteer = require('puppeteer');
 
 // Login to Huntr at 'https://huntr.co/login'
-// Go to the page, fill the fields, submit, wait for 2 redirects
+// Go to the page, fill the fields, submit, wait for 2 seconds
 const loginHuntr = async (page) => {
   await goToPage(config.huntrGoalsDashboardUrl, page);
   await page.locator('input[type="email"]')
@@ -20,9 +20,11 @@ const loginHuntr = async (page) => {
   await page.locator('input[type="password"]')
     .setEnsureElementIsInTheViewport(false)
     .fill(credentials.huntrPassword);
-  await clickAndWaitForRedirect('button[color="#6A4FEB"]', page, 1);
+  await clickAndWaitForRedirect('button[color="#6A4FEB"]', page);
+  await pageLoadDelay(2000);
 }
 
+// Find and open a specific job board
 const findAndClickJobBlock = async (jobBlockTitle, page) => {
   const parentDivHandle = await page.waitForSelector(`.list-container.transparent-scrollbar.small:has(input[value="${jobBlockTitle}"])`);
   const addJobBlockDivHandle = await parentDivHandle.$('.add-job-block');
@@ -32,40 +34,66 @@ const findAndClickJobBlock = async (jobBlockTitle, page) => {
   await pageLoadDelay();
 }
 
-const fillAndSubmitNewJobForm = async (page) => {
-  // const companyInputHandle = await page.waitForSelector('input[aria-label="Company"]')
-  // await companyInputHandle.type('test-title-3', {delay: 100});
-
+// Fill and submit the required job info on the form
+const fillRequiredJobInfoAndSubmit = async (page, job) => {
   await page.locator('input[aria-label="Company"]')
     .setEnsureElementIsInTheViewport(false)
-    .fill('test-company-3')
+    .fill(job.company);
+
+  await pageLoadDelay(100);
+
+  await page.locator('h1[title="Add Job"]')
+    .setEnsureElementIsInTheViewport(false)
+    .click();
+  
+  await pageLoadDelay(100);
 
   await page.locator('input[aria-label="Job Title"]')
     .setEnsureElementIsInTheViewport(false)
-    .fill('test-title-3');
+    .fill(job.title);
 
   const parentMainModalHandle = await page.waitForSelector(`main.transparent-scrollbar.medium`);
   const saveJobHandle = await parentMainModalHandle.$('button[color="#6A4FEB"]');
 
-  const companyInputHandle2 = await page.waitForSelector('input[aria-label="Company"]')
-
-  console.log('before click')
-  logElementHandle(companyInputHandle2, page)
-  logElementHandle(parentMainModalHandle, page)
-  // await Promise.all([
-  //   page.waitForNavigation(),
-  //   parentMainModalHandle.waitForSelector('button[color="#6A4FEB"]'),
-  //   saveJobHandle.click(),
-  // ]);
-  console.log('after click')
+  await Promise.all([
+    page.waitForNavigation(),
+    saveJobHandle.click(),
+  ]);
   await saveJobHandle.dispose();
-  // await saveJobHandle.click();
+  await parentMainModalHandle.dispose();
   await pageLoadDelay();
 }
 
-const createHuntrJobPosting = async(page) => {
-  await findAndClickJobBlock("Coding Challenge ", page);
-  await fillAndSubmitNewJobForm(page);
+// Fill and submit additional job info, then close the form
+const fillAdditionalJobInfoAndClose = async (page, job) => {
+  if (job.url?.length) {
+    await page.locator('input[placeholder="+ add URL"]')
+    .setEnsureElementIsInTheViewport(false)
+    .fill(job.url);
+  };
+
+  if (job.description?.length) {
+    await page.locator('div[contenteditable="true"]')
+    .setEnsureElementIsInTheViewport(false)
+    .fill(job.description);
+  };
+
+  await page.locator('button[color="white"]')
+    .setEnsureElementIsInTheViewport(false)
+    .click();
+  await pageLoadDelay();
+}
+
+// Fills out and submits job form with supplied job
+const fillSubmitAndCloseNewJob = async (page, job) => {
+  await fillRequiredJobInfoAndSubmit(page, job);
+  await fillAdditionalJobInfoAndClose(page, job);
+}
+
+// Re-usable function for creating Huntr jobs from the job dashboard
+const createHuntrJobPosting = async (page, job = jobs[Object.keys(jobs)[0]]) => {
+  await findAndClickJobBlock("Applied", page);
+  await fillSubmitAndCloseNewJob(page, job);
 }
 
 // Testing - Allows me to see the raw html during the Huntr workflow
