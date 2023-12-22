@@ -1,3 +1,4 @@
+const puppeteer = require('puppeteer');
 const config = require("./config");
 const { BrowserWindow } = require('electron');
 
@@ -56,6 +57,19 @@ const logElementHandle = async (elementHandle, page) => {
   console.log(elementHtml);
 }
 
+// Test function to see if puppeteer is launching correctly
+const basicPuppeteerTest = async () => {
+  console.log("1")
+  const browser = await puppeteer.launch({ headless:false });
+  console.log("2")
+  const page = await browser.newPage();
+
+  // Visit page 
+  await page.goto('https://rokasjeriomenko.com');
+  const html = await page.content();
+  console.log(html);
+}
+
 module.exports = { 
 	pageLoadDelay,
 	createWindow,
@@ -63,4 +77,5 @@ module.exports = {
 	goToAndProcessPageHtml,
 	clickAndWaitForRedirect,
 	logElementHandle,
+  basicPuppeteerTest,
 }

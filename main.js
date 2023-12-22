@@ -7,7 +7,7 @@ const {
 const config = require("./config");
 const credentials = require("./credentials");
 const jobs = require("./jobs");
-const { app } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const puppeteer = require('puppeteer');
 
 // Login to Huntr at 'https://huntr.co/login'
@@ -114,17 +114,19 @@ app.on('window-all-closed', () => {
 
 // Start the app and run it
 app.whenReady().then(async () => {
-  const testing = true;
   const mainWindow = createWindow(1000, 750);
+  mainWindow.loadFile('index.html');
+
   const browser = await puppeteer.launch({ headless:true });
   const page = await browser.newPage();
 
   let htmlToRender;
-  if (testing) htmlToRender = await testHuntrFlow(page); // Production will ultimately just be a headless series of functions called on page
+  if (config.testing) htmlToRender = await testHuntrFlow(page); // If testing, renders the html from Puppeteer
 
   mainWindow.loadURL(`data:text/html,${encodeURIComponent(htmlToRender)}`);
   mainWindow.webContents.openDevTools(); // Good for testing, might be removed in productions
 
+  // Create a window if there are none on Mac
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   })
