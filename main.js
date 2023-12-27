@@ -1,3 +1,5 @@
+const dotenv = require('dotenv');
+dotenv.config({ path: '.env.local' });
 const {
   goToPage,
   createWindow,
@@ -5,7 +7,8 @@ const {
   pageLoadDelay,
 } = require("./utils");
 const config = require("./config");
-const credentials = require("./credentials");
+const huntrEmail = process.env.HUNTR_EMAIL;
+const huntrPassword = process.env.HUNTR_PASSWORD;
 const jobs = require("./jobs");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const puppeteer = require('puppeteer');
@@ -16,10 +19,10 @@ const loginHuntr = async (page) => {
   await goToPage(config.huntrGoalsDashboardUrl, page);
   await page.locator('input[type="email"]')
     .setEnsureElementIsInTheViewport(false)
-    .fill(credentials.huntrEmail);
+    .fill(huntrEmail);
   await page.locator('input[type="password"]')
     .setEnsureElementIsInTheViewport(false)
-    .fill(credentials.huntrPassword);
+    .fill(huntrPassword);
   await clickAndWaitForRedirect('button[color="#6A4FEB"]', page);
   await pageLoadDelay(2000);
 }
